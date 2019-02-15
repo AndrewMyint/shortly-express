@@ -279,7 +279,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Sessions Schema:', function () {
+  describe('Sessions Schema:', function () {
     it('contains a sessions table', function (done) {
       var queryString = 'SELECT * FROM sessions';
       db.query(queryString, function (err, results) {
@@ -327,7 +327,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Express Middleware', function () {
+  describe('Express Middleware', function () {
     var cookieParser = require('../server/middleware/cookieParser.js');
     var createSession = require('../server/middleware/auth.js').createSession;
 
@@ -349,6 +349,7 @@ describe('', function () {
         var response = httpMocks.createResponse();
 
         cookieParser(requestWithoutCookies, response, function () {
+
           var cookies = requestWithoutCookies.cookies;
           expect(cookies).to.be.an('object');
           expect(cookies).to.eql({});

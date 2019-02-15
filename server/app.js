@@ -81,11 +81,13 @@ app.post('/signup', (req, res, next) => {
   // console.log("********", req.body);
   models.Users.create(req.body)
     .then(user => {
-      res.status(200).send(user);
+      // console.log(res.hearders);
+      res.redirect('/');
+      // res.status(200).send(user);
     })
     .catch(err => {
-      res.status(404).send(err);
-      console.log(err);
+      if (err.code === 'ER_DUP_ENTRY')
+      res.redirect('/signup');
     });
 });
 
