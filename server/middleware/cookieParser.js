@@ -6,9 +6,11 @@ const parseCookies = (req, res, next) => {
       acc[array[0]] = array[1];
       return acc;
     },{});
+    req.cookies = Object.assign({}, cookie);
+  } else {
+    req.session = {hash : ''};
   }
-  console.log('*********', cookie);
-  req.cookies = Object.assign({}, cookie);
+  console.log('*********', req);
   //console.log(req.cookies);
 
   next();
