@@ -89,7 +89,27 @@ app.post('/signup', (req, res, next) => {
       if (err.code === 'ER_DUP_ENTRY')
       res.redirect('/signup');
     });
-});
+});``
+
+app.post('/login', (req, res, next) => {
+  var username = {username : req.body.username}
+  models.Users.get(username)
+  .then((result) => {
+   // console.log('************',models.Users.compare(req.body.password, result.password, result.salt));
+    if (result) {
+      if (models.Users.compare(req.body.password, result.password, result.salt)) {
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+    } else if (!result){
+      res.redirect('/login');
+    }
+  })
+  .catch((err) => {
+    console.log('this is error', err);
+  })
+})
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
