@@ -12,7 +12,9 @@ app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(express.static(path.join(__dirname, '../public')));
 
 
@@ -46,7 +48,9 @@ app.post('/links',
       return res.sendStatus(404);
     }
 
-    return models.Links.get({ url })
+    return models.Links.get({
+        url
+      })
       .then(link => {
         if (link) {
           throw link;
@@ -61,7 +65,9 @@ app.post('/links',
         });
       })
       .then(results => {
-        return models.Links.get({ id: results.insertId });
+        return models.Links.get({
+          id: results.insertId
+        });
       })
       .then(link => {
         throw link;
@@ -81,12 +87,49 @@ app.post('/signup', (req, res, next) => {
   // console.log("********", req.body);
   models.Users.create(req.body)
     .then(user => {
-      res.status(200).send(user);
+      res.redirect('/');
+      //res.status(200).send(user);
     })
     .catch(err => {
-      res.status(404).send(err);
-      console.log(err);
+      // res.status(404).send(err);
+      // console.log('res------------------', res.headers.location);
+      if (err.code === 'ER_DUP_ENTRY') {
+        res.redirect('/signup');
+      }
     });
+});
+
+app.post('/login', (req, res, next) => {
+  // check username, and password from databases
+  // if username is defined, redirect to '/'
+  // if username is undefined, redirect to '/login'
+  // console.log("**********params", req.params);
+  var username = {username : req.body.username};
+  // req.body.password
+  models.Users.get(username)
+    .then((result) => {
+      // console.log('****************',result);
+      if (result !== undefined && models.Users.compare(req.body.password, result.password, result.salt)) {
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+      // else if (password is incorrect) => redirect('/')
+      // res.status(200).send(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(404).send(err);
+    });
+
+    // compare(attempted, password, salt) {
+    //   return utils.compareHash(attempted, password, salt);
+    // }
+
+  //    if it is corrected, redirect('/');
+  // else if (username is not exited) => redirect('/')
+ 
+
 });
 
 /************************************************************/
@@ -97,18 +140,26 @@ app.post('/signup', (req, res, next) => {
 
 app.get('/:code', (req, res, next) => {
 
-  return models.Links.get({ code: req.params.code })
+  return models.Links.get({
+      code: req.params.code
+    })
     .tap(link => {
 
       if (!link) {
         throw new Error('Link does not exist');
       }
-      return models.Clicks.create({ linkId: link.id });
+      return models.Clicks.create({
+        linkId: link.id
+      });
     })
     .tap(link => {
-      return models.Links.update(link, { visits: link.visits + 1 });
+      return models.Links.update(link, {
+        visits: link.visits + 1
+      });
     })
-    .then(({ url }) => {
+    .then(({
+      url
+    }) => {
       res.redirect(url);
     })
     .error(error => {
