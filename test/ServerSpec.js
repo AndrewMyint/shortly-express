@@ -441,20 +441,28 @@ describe('', function () {
       it('assigns a username and userId property to the session object if the session is assigned to a user', function (done) {
         var requestWithoutCookie = httpMocks.createRequest();
         var response = httpMocks.createResponse();
+        // create username
         var username = 'BillZito';
-
+        // insert username to the database
         db.query('INSERT INTO users (username) VALUES (?)', username, function (error, results) {
           if (error) { return done(error); }
+          // keep userId from insertId which is from results coming from database
           var userId = results.insertId;
-
+          // console.log('userId', userId);
+          // createSession
           createSession(requestWithoutCookie, response, function () {
+            // hash is generated with createSession and keep it inside 'hash'
             var hash = requestWithoutCookie.session.hash;
+            // update sessions's userId where hash is equal
             db.query('UPDATE sessions SET userId = ? WHERE hash = ?', [userId, hash], function (error, result) {
-
+              // console.log('****inside test result', result)
+              // use userId to match inside usertable and take the name
               var secondResponse = httpMocks.createResponse();
               var requestWithCookies = httpMocks.createRequest();
               requestWithCookies.cookies.shortlyid = hash;
-
+              // the requestWithCookies just created cookies property and assign 'hash'
+              //    which is from 'session' to the property of cookies
+              //create another Session with requestWithCookies
               createSession(requestWithCookies, secondResponse, function () {
                 var session = requestWithCookies.session;
                 expect(session).to.be.an('object');
@@ -483,7 +491,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Sessions and cookies', function () {
+  describe('Sessions and cookies', function () {
     var requestWithSession;
     var cookieJar;
 
@@ -504,6 +512,7 @@ describe('', function () {
     beforeEach(function (done) {
       cookieJar = request.jar();
       requestWithSession = request.defaults({ jar: cookieJar });
+      console.log(request.defaults().jar());
       done();
     });
 

@@ -10,7 +10,6 @@ const parseCookies = (req, res, next) => {
   } else {
     req.session = {hash : ''};
   }
-  console.log('*********', req);
   //console.log(req.cookies);
 
   next();
