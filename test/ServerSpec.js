@@ -405,15 +405,17 @@ describe('', function () {
         var response = httpMocks.createResponse();
 
         createSession(requestWithoutCookie, response, function () {
+          //console.log('requestWithoutCookie************', requestWithoutCookie);
           var cookie = response.cookies.shortlyid.value;
           var secondResponse = httpMocks.createResponse();
           var requestWithCookies = httpMocks.createRequest();
           requestWithCookies.cookies.shortlyid = cookie;
-
+         // console.log("requestWithCookies**************", requestWithCookies);
           createSession(requestWithCookies, secondResponse, function () {
             var session = requestWithCookies.session;
             expect(session).to.be.an('object');
             expect(session.hash).to.exist;
+           // console.log('session.hash == > cookie***********', session.hash);
             expect(session.hash).to.be.cookie;
             done(); 
           });
@@ -444,14 +446,20 @@ describe('', function () {
 
         db.query('INSERT INTO users (username) VALUES (?)', username, function (error, results) {
           if (error) { return done(error); }
+           
           var userId = results.insertId;
 
           createSession(requestWithoutCookie, response, function () {
+           // console.log('response$$$$$$$$$$$$$$$$$', response);
             var hash = requestWithoutCookie.session.hash;
+            //console.log('hash*************', hash);
             db.query('UPDATE sessions SET userId = ? WHERE hash = ?', [userId, hash], function (error, result) {
 
               var secondResponse = httpMocks.createResponse();
               var requestWithCookies = httpMocks.createRequest();
+            //  console.log('requestWithCookies@@@@@@@@@@@@@@@@@@@@', requestWithCookies);
+              
+              
               requestWithCookies.cookies.shortlyid = hash;
 
               createSession(requestWithCookies, secondResponse, function () {
@@ -473,6 +481,7 @@ describe('', function () {
         requestWithMaliciousCookie.cookies.shortlyid = maliciousCookieHash;
 
         createSession(requestWithMaliciousCookie, response, function () {
+          //console.log('requestWithMaliciousCookie****************', requestWithMaliciousCookie);
           var cookie = response.cookies.shortlyid;
           expect(cookie).to.exist;
           expect(cookie).to.not.equal(maliciousCookieHash);

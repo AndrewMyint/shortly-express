@@ -3,49 +3,67 @@ const Promise = require('bluebird');
 
 module.exports.createSession = (req, res, next) => {
 
-  // check there is session on the req
-  // console.log('req.cookies**********', req.cookies);
+ 
+  // request without cookies
   if (Object.keys(req.cookies).length === 0) {
     req.session = {
-      hash: ''
+      hash: '',
+      user: {
+        username: ''
+      },
+      userId: ''
     };
     res.cookies['shortlyid'] = {
       value: ''
     };
-  } 
-  // how do we know if the session already exist
-  if (req.session) {
-    // console.log("req.cookies.shortlyid*********", req.cookies.shortlyid);
-    console.log('res.cookies.shortlyid.value********,', res.cookies.shortlyid.value);
-    console.log('req.session', req.session);
-    req.session.hash = res.cookies.shortlyid.value;
+    // createSession(requestWithCookies, secondResponse, function () {
+    //   var session = requestWithCookies.session;
+    //   expect(session).to.be.an('object');
+    //   expect(session.hash).to.exist;
+    //  // console.log('session.hash == > cookie***********', session.hash);
+    //   expect(session.hash).to.be.cookie;
+    //   done(); 
+    // });
+    models.Sessions.create()
+      .then((result) => {
+        models.Sessions.get({
+            id: result.insertId
+          })
+          .then((result) => {
+            req.session.hash = result.hash;
+            res.cookies.shortlyid.value = req.session.hash;
+            next();
+          });
+      });
+
+  // request with cookie (maybe also wrong cookie)
+  } else {
+    req.session = {
+      hash: '',
+      user: {
+        username: ''
+      },
+      userId: ''
+    };
+    res.cookies['shortlyid'] = {
+      value: ''
+    };
+
+    models.Sessions.get({
+        hash: req.cookies.shortlyid
+      })
+      .then((result) => {
+        if (result && result.user) {
+          req.session.user.username = result.user.username;
+          req.session.userId = result.user.id;    
+        } else {
+          // if req.cookies is not in database
+          res.cookies.shortlyid.value = '';
+        }
+        next();
+      });
   }
-  // ----------------------------------------
-  // what is the session, where do we add it
-  // ----------------------------------------
-  // console.log('response***********', res);
-  // if there is a session, assign session object to request
-  //if there is no session, make a session
-  //then, set a new cookie on the response
-  //create a new hash {} for each new session
-  //then, check the session object to see, if it's assigned to user
-  //if it does, it assign the username and user id to the session object
-  //else clear, and reassign new cookie
-  next();
-
 };
-// createSession(requestWithoutCookie, response, function () {
-//   var cookie = response.cookies.shortlyid.value;
-//   var secondResponse = httpMocks.createResponse();
-//   var requestWithCookies = httpMocks.createRequest();
-//   requestWithCookies.cookies.shortlyid = cookie;
-
-//   createSession(requestWithCookies, secondResponse, function () {
-//     var session = requestWithCookies.session;
-//     expect(session).to.be.an('object');
-//     expect(session.hash).to.exist;
-//     expect(session.hash).to.be.cookie;
-//     done(); 
 
 /************************************************************/
 // Add additional authentication middleware functions below
