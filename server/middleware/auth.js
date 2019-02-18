@@ -6,70 +6,65 @@ module.exports.createSession = (req, res, next) => {
   // console.log('req.cookies**********', req.cookies);
   //if (Object.keys(req.cookies).length === 0) {
   // if there is no req.cookies
-  if (req.cookies && Object.keys(req.cookies).length === 0) {
-    req.session = {
-      hash: '',
-      user: { username: '' },
-      userId: ''
-    };
-    res.cookies = {
-      shortlyid: {
-        value: ''
-      }
-    };
+  if (req.cookies.hasOwnProperty('shortlyid') && req.cookies.shortlyid) {
+    models.Sessions.get({ hash: req.cookies.shortlyid })
+      .then((sessionData) => {
+        if (sessionData === undefined) {
+
+          req.session = {};
+          models.Sessions.create()
+            .then((result) => {
+              models.Sessions.get({ id: result.insertId })
+                .then((sessionData) => {
+                  req.session.hash = sessionData.hash;
+                  // res.cookies.shortlyid.value = req.session.hash
+                  res.cookies = {
+                    shortlyid: {
+                      value: req.session.hash
+                    }
+                  };
+                  res.cookie('shortlyid', req.session.hash);
+                  next();
+                });
+            });
+        } else {
+          req.session = {
+            hash: '',
+            user: { username: '' },
+            userId: ''
+          };
+          req.session.hash = sessionData.hash;
+          if (sessionData.user) {
+            req.session.user.username = sessionData.user.username;
+            req.session.userId = sessionData.userId;
+          }
+          next();
+        }
+      }).catch((err) => {
+        console.log('Error From Session', err);
+      });
+  }
+  // if there is cookies along with browser (including the mallicious cookies)
+  else {
+    req.session = {};
     models.Sessions.create()
       .then((result) => {
         models.Sessions.get({ id: result.insertId })
           .then((sessionData) => {
             req.session.hash = sessionData.hash;
-            res.cookies.shortlyid.value = req.session.hash;
-             res.cookie('shortlyid', req.session.hash);
+            res.cookies = {
+              shortlyid: {
+                value: req.session.hash
+              }
+            };
+            // res.cookies.shortlyid.value =
+            res.cookie('shortlyid', req.session.hash);
             next();
           });
       }).catch((err) => {
         console.log('Error From Session', err);
       })
   }
-  // if there is cookies along with browser (including the mallicious cookies)
-  else {
-    req.session = {
-      hash: '',
-      user: { username: '' },
-      userId: ''
-    };
-    res.cookies = {
-      shortlyid: {
-        value: ''
-      }
-    };
-    // console.log('req****************',req.res);
-    models.Sessions.get({ hash: req.cookies.shortlyid })
-      .then((sessionData) => {
-        if (sessionData && sessionData.hasOwnProperty('user')) {
-          req.session.hash = sessionData.hash;
-          req.session.user.username = sessionData.user.username;
-          req.session.userId = sessionData.userId;
-          res.cookie('shortlyid', req.session.hash);
-
-        } else if (sessionData === undefined) {
-          models.Sessions.create()
-            .then((result) => {
-              models.Sessions.get({ id: result.insertId })
-                .then((sessionData) => {
-                  res.cookies.shortlyid.value = sessionData.hash;
-                  req.session.hash = res.cookies.shortlyid.value;
-                  res.cookie('shortlyid', req.session.hash);
-                });
-            });
-        } else {
-          res.cookies.shortlyid.value = '';
-        }
-        next();
-      }).catch((err) => {
-        console.log('Error From Session', err);
-      });
-  }
-  // });
 };
 
 
