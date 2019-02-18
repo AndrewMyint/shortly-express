@@ -406,15 +406,17 @@ describe('', function () {
         var response = httpMocks.createResponse();
 
         createSession(requestWithoutCookie, response, function () {
+          //console.log('requestWithoutCookie************', requestWithoutCookie);
           var cookie = response.cookies.shortlyid.value;
           var secondResponse = httpMocks.createResponse();
           var requestWithCookies = httpMocks.createRequest();
           requestWithCookies.cookies.shortlyid = cookie;
-
+         // console.log("requestWithCookies**************", requestWithCookies);
           createSession(requestWithCookies, secondResponse, function () {
             var session = requestWithCookies.session;
             expect(session).to.be.an('object');
             expect(session.hash).to.exist;
+           // console.log('session.hash == > cookie***********', session.hash);
             expect(session.hash).to.be.cookie;
             done();
           });
@@ -446,19 +448,29 @@ describe('', function () {
         // insert username to the database
         db.query('INSERT INTO users (username) VALUES (?)', username, function (error, results) {
           if (error) { return done(error); }
+           
           var userId = results.insertId;
           // keep userId from insertId which is from results coming from database
           // console.log('userId', userId);
           // createSession
           createSession(requestWithoutCookie, response, function () {
+<<<<<<< HEAD
             // hash is generated with createSession and keep it inside 'hash'
             var hash = requestWithoutCookie.session.hash;
             // update sessions's userId where hash is equal
+=======
+           // console.log('response$$$$$$$$$$$$$$$$$', response);
+            var hash = requestWithoutCookie.session.hash;
+            //console.log('hash*************', hash);
+>>>>>>> cd02eec8cc5104a24287c51d76da207e4480c3ee
             db.query('UPDATE sessions SET userId = ? WHERE hash = ?', [userId, hash], function (error, result) {
               // console.log('****inside test result', result)
               // use userId to match inside usertable and take the name
               var secondResponse = httpMocks.createResponse();
               var requestWithCookies = httpMocks.createRequest();
+            //  console.log('requestWithCookies@@@@@@@@@@@@@@@@@@@@', requestWithCookies);
+              
+              
               requestWithCookies.cookies.shortlyid = hash;
               // the requestWithCookies just created cookies property and assign 'hash'
               //    which is from 'session' to the property of cookies
@@ -482,6 +494,7 @@ describe('', function () {
         requestWithMaliciousCookie.cookies.shortlyid = maliciousCookieHash;
 
         createSession(requestWithMaliciousCookie, response, function () {
+          //console.log('requestWithMaliciousCookie****************', requestWithMaliciousCookie);
           var cookie = response.cookies.shortlyid;
           expect(cookie).to.exist;
           expect(cookie).to.not.equal(maliciousCookieHash);
