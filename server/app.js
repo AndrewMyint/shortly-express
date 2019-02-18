@@ -4,6 +4,7 @@ const utils = require('./lib/hashUtils');
 const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
+const parseCookies = require('./middleware/cookieParser');
 const models = require('./models');
 
 const app = express();
@@ -16,8 +17,8 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(express.static(path.join(__dirname, '../public')));
-
-
+app.use(parseCookies);
+app.use(Auth.createSession);
 
 app.get('/',
   (req, res) => {
@@ -84,42 +85,20 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 app.post('/signup', (req, res, next) => {
-  // console.log("********", req.body);
+  // console.log('**************',Object.keys(req));
   models.Users.create(req.body)
     .then(user => {
+      // console.log(res.hearders);
+      models.Sessions.update({hash: req.session.hash}, {userId: user.insertId});
       res.redirect('/');
-      //res.status(200).send(user);
+      console.log('***********', req.session, req.cookies.hash);
+      console.log('resssssss', res.cookies);
+      // res.status(200).send(user);
+      return user;
     })
     .catch(err => {
-      // res.status(404).send(err);
-      // console.log('res------------------', res.headers.location);
-      if (err.code === 'ER_DUP_ENTRY') {
-        res.redirect('/signup');
-      }
-    });
-});
-
-app.post('/login', (req, res, next) => {
-  // check username, and password from databases
-  // if username is defined, redirect to '/'
-  // if username is undefined, redirect to '/login'
-  // console.log("**********params", req.params);
-  var username = {username : req.body.username};
-  // req.body.password
-  models.Users.get(username)
-    .then((result) => {
-      // console.log('****************',result);
-      if (result !== undefined && models.Users.compare(req.body.password, result.password, result.salt)) {
-        res.redirect('/');
-      } else {
-        res.redirect('/login');
-      }
-      // else if (password is incorrect) => redirect('/')
-      // res.status(200).send(result);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(404).send(err);
+      if (err.code === 'ER_DUP_ENTRY')
+      res.redirect('/signup');
     });
 
     // compare(attempted, password, salt) {
@@ -128,10 +107,62 @@ app.post('/login', (req, res, next) => {
 
   //    if it is corrected, redirect('/');
   // else if (username is not exited) => redirect('/')
- 
+
 
 });
 
+app.get('/logout', (req, res, next) => {
+  // models.Sessions.getAll()
+  // .then((result) => {
+  //   console.log('**************result', result);
+  //   // console.log('*****************', req.cookies)
+  // })
+  // .catch((err) => {
+  //   console.log('err%$$$$$$$$$',err);
+  // })
+  // // session has no hash (problem)
+  // console.log('***********req', req.cookies.hash);
+
+  // console.log('**************session', req.session);
+  // // res.clearCookie('shortlyid');
+
+  models.Sessions.delete({hash : req.session.hash})
+  .then(() => {
+    // res.clearCookie('shortlyid');
+    console.log('************res', res.cookies);
+   res.redirect('/');
+  })
+  .catch((err) => {
+    console.log('err from logout', err);
+  })
+})
+
+app.post('/login', (req, res, next) => {
+  var username = {username : req.body.username}
+  models.Users.get(username)
+  .then((user) => {
+   // console.log('************',models.Users.compare(req.body.password, user.password, user.salt));
+    if (user) {
+      if (models.Users.compare(req.body.password, user.password, user.salt)) {
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+    } else if (!user){
+      res.redirect('/login');
+    }
+  })
+  .catch((err) => {
+    console.log('this is error', err);
+  });
+});
+
+
+//  delete(options) {
+//   let parsedOptions = parseData(options);
+//   let queryString = `DELETE FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')}`;
+//   return executeQuery(queryString, parsedOptions.values);
+// }
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
