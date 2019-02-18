@@ -446,8 +446,8 @@ describe('', function () {
         // insert username to the database
         db.query('INSERT INTO users (username) VALUES (?)', username, function (error, results) {
           if (error) { return done(error); }
-          // keep userId from insertId which is from results coming from database
           var userId = results.insertId;
+          // keep userId from insertId which is from results coming from database
           // console.log('userId', userId);
           // createSession
           createSession(requestWithoutCookie, response, function () {
@@ -512,7 +512,6 @@ describe('', function () {
     beforeEach(function (done) {
       cookieJar = request.jar();
       requestWithSession = request.defaults({ jar: cookieJar });
-      console.log(request.defaults().jar());
       done();
     });
 
@@ -557,16 +556,28 @@ describe('', function () {
         });
       });
     });
+    // var addUser = function (callback) {
 
+    //   var options = {
+    //     'method': 'POST',
+    //     'uri': 'http://127.0.0.1:4568/signup',
+    //     'json': {
+    //       'username': 'Vivian',
+    //       'password': 'Vivian'
+    //     }
+    //   };
+
+    //   requestWithSession(options, callback);
+    // };
     it('destroys session and cookie when logs out', function (done) {
       addUser(function (err, res, body) {
         if (err) { return done(err); }
         var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
         var cookieValue = cookies[0].value;
 
+
         requestWithSession('http://127.0.0.1:4568/logout', function (error, response, resBody) {
           if (error) { return done(error); }
-
           var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
           var newCookieValue = cookies[0].value;
           expect(cookieValue).to.not.equal(newCookieValue);

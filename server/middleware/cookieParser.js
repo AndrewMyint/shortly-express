@@ -8,7 +8,7 @@ const parseCookies = (req, res, next) => {
     },{});
     req.cookies = Object.assign({}, cookie);
   } else {
-    req.session = {hash : ''};
+    req.cookies = {};
   }
   //console.log(req.cookies);
 
