@@ -556,19 +556,6 @@ describe('', function () {
         });
       });
     });
-    // var addUser = function (callback) {
-
-    //   var options = {
-    //     'method': 'POST',
-    //     'uri': 'http://127.0.0.1:4568/signup',
-    //     'json': {
-    //       'username': 'Vivian',
-    //       'password': 'Vivian'
-    //     }
-    //   };
-
-    //   requestWithSession(options, callback);
-    // };
     it('destroys session and cookie when logs out', function (done) {
       addUser(function (err, res, body) {
         if (err) { return done(err); }
@@ -593,7 +580,7 @@ describe('', function () {
     });
   });
 
-  xdescribe('Privileged Access:', function () {
+  describe('Privileged Access:', function () {
 
     it('Redirects to login page if a user tries to access the main page and is not signed in', function (done) {
       request('http://127.0.0.1:4568/', function (error, res, body) {

@@ -18,7 +18,6 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(parseCookies);
 app.use(Auth.createSession);
 
-
 app.get('/',
   (req, res) => {
     res.render('index');
@@ -98,19 +97,19 @@ app.post('/signup', (req, res, next) => {
 });
 
 app.get('/logout', (req, res, next) => {
-  models.Sessions.getAll()
-  .then((result) => {
-    console.log('**************result', result);
-    // console.log('*****************', req.cookies)
-  })
-  .catch((err) => {
-    console.log('err%$$$$$$$$$',err);
-  })
-  // session has no hash (problem)
-  console.log('***********req', req.cookies.hash);
+  // models.Sessions.getAll()
+  // .then((result) => {
+  //   console.log('**************result', result);
+  //   // console.log('*****************', req.cookies)
+  // })
+  // .catch((err) => {
+  //   console.log('err%$$$$$$$$$',err);
+  // })
+  // // session has no hash (problem)
+  // console.log('***********req', req.cookies.hash);
 
-  console.log('**************session', req.session);
-  // res.clearCookie('shortlyid');
+  // console.log('**************session', req.session);
+  // // res.clearCookie('shortlyid');
 
   models.Sessions.delete({hash : req.session.hash})
   .then(() => {

@@ -10,7 +10,6 @@ module.exports.createSession = (req, res, next) => {
     models.Sessions.get({ hash: req.cookies.shortlyid })
       .then((sessionData) => {
         if (sessionData === undefined) {
-
           req.session = {};
           models.Sessions.create()
             .then((result) => {
@@ -30,11 +29,10 @@ module.exports.createSession = (req, res, next) => {
         } else {
           req.session = {
             hash: '',
-            user: { username: '' },
-            userId: ''
           };
           req.session.hash = sessionData.hash;
           if (sessionData.user) {
+            req.session.user = {};
             req.session.user.username = sessionData.user.username;
             req.session.userId = sessionData.userId;
           }
@@ -71,3 +69,12 @@ module.exports.createSession = (req, res, next) => {
 /************************************************************/
 // Add additional authentication middleware functions below
 /************************************************************/
+
+module.exports.checkUser = (req, res, next) => {
+  if (req.session.hasOwnProperty('userId')) {
+    next();
+  } else {
+    res.redirect('/login');
+    res.status(401).send();
+  }
+}
